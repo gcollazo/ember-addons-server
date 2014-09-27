@@ -1,0 +1,33 @@
+{
+  "name": "ember-addons-server",
+  "version": "1.0.0",
+  "description": "API server for addons.builtwithember.io",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Giovanni Collazo - @gcollazo",
+  "license": "MIT",
+  "keywords": [
+    "express",
+    "ember",
+    "emberjs"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/gcollazo/ember-addons-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gcollazo/ember-addons-server/issues"
+  },
+  "homepage": "https://github.com/gcollazo/ember-addons-server",
+  "dependencies": {
+    "anydb-sql": "^0.6.16",
+    "compression": "^1.1.0",
+    "cors": "^2.4.2",
+    "dotenv": "^0.4.0",
+    "express": "^4.9.5",
+    "npm-registry": "^0.1.11",
+    "rsvp": "^3.0.13"
+  }
+}
