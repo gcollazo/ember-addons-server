@@ -40,10 +40,22 @@ emaddons.fetchAllWithDetailsAndDownloads()
   })
   .then(function(results) {
     console.log('--> Done updating %s addons.', results.length);
-    console.log('--> Saving metrics...');
-    return repo.saveMetric('total', results.length);
+    console.log('--> Checking last metric saved...');
+
+    return repo.getMetric('total').then(function(totalMetrics) {
+      if (totalMetrics[totalMetrics.length - 1].value !== results.length.toString()) {
+        console.log('--> Saving metrics...');
+        return repo.saveMetric('total', results.length);
+      } else {
+        console.log('--> Skiping metrics save...');
+      }
+    });
   })
   .then(function() {
     console.log('--> Finished.');
+    repo.db.close();
+  })
+  .catch(function(err) {
+    console.error(err);
     repo.db.close();
   });
