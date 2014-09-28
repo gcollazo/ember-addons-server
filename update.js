@@ -43,7 +43,8 @@ emaddons.fetchAllWithDetailsAndDownloads()
     console.log('--> Checking last metric saved...');
 
     return repo.getMetric('total').then(function(totalMetrics) {
-      if (totalMetrics[totalMetrics.length - 1].value !== results.length.toString()) {
+      var lastValue = totalMetrics[totalMetrics.length - 1].value;
+      if (lastValue !== results.length.toString()) {
         console.log('--> Saving metrics...');
         return repo.saveMetric('total', results.length);
       } else {
