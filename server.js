@@ -21,9 +21,12 @@ app.get('/', function(req, res) {
   req.repo.getAll()
     .then(function(results) {
       res.json(results);
+      req.repo.db.close();
     })
     .catch(function(err) {
       console.error(err);
+      res.status(500).json({error: 'error'});
+      req.repo.db.close();
     });
 });
 
@@ -31,9 +34,12 @@ app.get('/stats', function(req, res) {
   req.repo.getMetric('total')
     .then(function(rows) {
       res.json(rows);
+      req.repo.db.close();
     })
     .catch(function(err) {
       console.error(err);
+      res.status(500).json({error: 'error'});
+      req.repo.db.close();
     });
 });
 
