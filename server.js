@@ -18,25 +18,8 @@ app.use(function(req, res, next) {
 });
 
 app.get('/', function(req, res) {
-  req.repo.getAll()
-    .then(function(results) {
-      var filtered = results.filter(function(mod) {
-        // Skip modules with {"emberAddon": {"private": true}} on package.json
-        if (!(typeof mod.doc.emberAddon !== 'undefined' &&
-            typeof mod.doc.emberAddon.private !== 'undefined' &&
-            mod.doc.emberAddon.private === true)) {
-          return mod;
-        }
-      });
-
-      res.json(filtered);
-      req.repo.db.close();
-    })
-    .catch(function(err) {
-      console.error(err);
-      res.status(500).json({error: 'error'});
-      req.repo.db.close();
-    });
+  res.redirect(301,
+    'https://io-builtwithember-addons-data.s3.amazonaws.com/addons.json');
 });
 
 app.get('/stats', function(req, res) {
