@@ -30,5 +30,8 @@
     "lodash": "^2.4.1",
     "npm-registry": "^0.1.11",
     "rsvp": "^3.0.13",
+  },
+  "engines": {
+    "node": "0.10.x"
   }
 }
