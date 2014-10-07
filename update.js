@@ -1,7 +1,6 @@
 var EmberAddons = require('./lib/ember_addons'),
     Repository = require('./lib/db'),
     dotenv = require('dotenv'),
-    RSVP = require('rsvp'),
     s3 = require('./lib/s3_repo');
 
 // load vars
@@ -13,8 +12,10 @@ var emaddons = new EmberAddons();
 var s3repo = new s3({
   key: process.env.AWS_ACCESS_KEY,
   secret: process.env.AWS_SECRET_KEY,
-  bucket: process.env.AWS_BUCKET_NAME
+  bucket: process.env.AWS_BUCKET_NAME,
+  addonFilename: process.env.ADDON_JSON_FILENAME
 });
+var startTime = new Date().getTime();
 
 // Update addons
 console.log('--> Fetching data from npm registry...');
@@ -22,33 +23,8 @@ emaddons.fetchAllWithDetailsAndDownloads()
   .then(function(results) {
     console.log('--> Done fetching data.');
 
-    // Save to db
-    var promises = results.map(function(item) {
-      return repo.createOrReplace({
-        name: item.name,
-        description: item.description,
-        time: item.time,
-        homepage: item.homepage,
-        keywords: item.keywords,
-        repository: item.repository,
-        author: item.author,
-        bugs: item.bugs,
-        license: item.license,
-        readmeFilename: item.readmeFilename,
-        github: item.github,
-        _npmUser: item._npmUser,
-        starred: item.starred,
-        downloads: item.downloads,
-        emberAddon: item.latest.emberAddon || {}
-      });
-    });
-
-    // Save to S3
     console.log('--> Uploading to S3...');
-    promises.push(s3repo.saveAddonData(results));
-
-    console.log('--> Writing to db...');
-    return RSVP.all(promises);
+    return s3repo.saveAddonData(results);
   })
   .then(function(results) {
     console.log('--> Done updating %s addons.', results.length);
@@ -65,8 +41,10 @@ emaddons.fetchAllWithDetailsAndDownloads()
     });
   })
   .then(function() {
-    console.log('--> Finished.');
     repo.db.close();
+
+    var totalTime = (new Date().getTime() - startTime) / 1000;
+    console.log('--> Duration: ' + totalTime + 's');
   })
   .catch(function(err) {
     console.error(err);
