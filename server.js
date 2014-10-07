@@ -20,7 +20,16 @@ app.use(function(req, res, next) {
 app.get('/', function(req, res) {
   req.repo.getAll()
     .then(function(results) {
-      res.json(results);
+      var filtered = results.filter(function(mod) {
+        // Skip modules with {"emberAddon": {"private": true}} on package.json
+        if (!(typeof mod.doc.emberAddon !== 'undefined' &&
+            typeof mod.doc.emberAddon.private !== 'undefined' &&
+            mod.doc.emberAddon.private === true)) {
+          return mod;
+        }
+      });
+
+      res.json(filtered);
       req.repo.db.close();
     })
     .catch(function(err) {

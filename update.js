@@ -1,7 +1,8 @@
 var EmberAddons = require('./lib/ember_addons'),
     Repository = require('./lib/db'),
     dotenv = require('dotenv'),
-    RSVP = require('rsvp');
+    RSVP = require('rsvp'),
+    s3 = require('./lib/s3_repo');
 
 // load vars
 dotenv.load();
@@ -9,6 +10,11 @@ dotenv.load();
 // Init
 var repo = new Repository(process.env.DATABASE_URL);
 var emaddons = new EmberAddons();
+var s3repo = new s3({
+  key: process.env.AWS_ACCESS_KEY,
+  secret: process.env.AWS_SECRET_KEY,
+  bucket: process.env.AWS_BUCKET_NAME
+});
 
 // Update addons
 console.log('--> Fetching data from npm registry...');
@@ -16,6 +22,7 @@ emaddons.fetchAllWithDetailsAndDownloads()
   .then(function(results) {
     console.log('--> Done fetching data.');
 
+    // Save to db
     var promises = results.map(function(item) {
       return repo.createOrReplace({
         name: item.name,
@@ -31,9 +38,14 @@ emaddons.fetchAllWithDetailsAndDownloads()
         github: item.github,
         _npmUser: item._npmUser,
         starred: item.starred,
-        downloads: item.downloads
+        downloads: item.downloads,
+        emberAddon: item.latest.emberAddon || {}
       });
     });
+
+    // Save to S3
+    console.log('--> Uploading to S3...');
+    promises.push(s3repo.saveAddonData(results));
 
     console.log('--> Writing to db...');
     return RSVP.all(promises);
