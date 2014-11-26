@@ -3,7 +3,8 @@ var express = require('express'),
     cors = require('cors'),
     compression = require('compression'),
     Repository = require('./lib/db'),
-    dotenv = require('dotenv');
+    dotenv = require('dotenv'),
+    csv = require('to-csv');
 
 // load vars
 dotenv.load();
@@ -26,6 +27,19 @@ app.get('/stats', function(req, res) {
   req.repo.getMetric('total')
     .then(function(rows) {
       res.json(rows);
+      req.repo.db.close();
+    })
+    .catch(function(err) {
+      console.error(err);
+      res.status(500).json({error: 'error'});
+      req.repo.db.close();
+    });
+});
+
+app.get('/stats.csv', function(req, res) {
+  req.repo.getMetric('total')
+    .then(function(rows) {
+      res.set('Content-Type', 'text/csv').send(csv(rows));
       req.repo.db.close();
     })
     .catch(function(err) {
