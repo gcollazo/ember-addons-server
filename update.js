@@ -1,5 +1,5 @@
 var EmberAddons = require('./lib/ember_addons'),
-    Repository = require('./lib/db'),
+    DB = require('./lib/db'),
     dotenv = require('dotenv'),
     s3 = require('./lib/s3_repo'),
     RssFeed = require('./lib/rss');
@@ -8,7 +8,7 @@ var EmberAddons = require('./lib/ember_addons'),
 dotenv.load();
 
 // Init
-var repo = new Repository(process.env.DATABASE_URL);
+var db = new DB(process.env.DATABASE_URL);
 var emaddons = new EmberAddons();
 var s3repo = new s3({
   key: process.env.AWS_ACCESS_KEY,
@@ -31,7 +31,7 @@ emaddons.fetchAllWithDetailsAndDownloads()
       feed.appendItem(item);
     });
 
-    console.log('--> Uploading to S3...');
+    // Save files to S3
     return s3repo.saveAddonData(results)
       .then(s3repo.saveAddonFeed(feed.getXml()));
   })
@@ -39,23 +39,23 @@ emaddons.fetchAllWithDetailsAndDownloads()
     console.log('--> Done updating %s addons.', results.length);
     console.log('--> Checking last metric saved...');
 
-    return repo.getMetric('total').then(function(totalMetrics) {
+    return db.getMetric('total').then(function(totalMetrics) {
       var lastValue = totalMetrics[totalMetrics.length - 1].value;
       if (lastValue !== results.length.toString()) {
         console.log('--> Saving metrics...');
-        return repo.saveMetric('total', results.length);
+        return db.saveMetric('total', results.length);
       } else {
         console.log('--> Skiping metrics save...');
       }
     });
   })
   .then(function() {
-    repo.db.close();
+    db.db.close();
 
     var totalTime = (new Date().getTime() - startTime) / 1000;
     console.log('--> Duration: ' + totalTime + 's');
   })
   .catch(function(err) {
     console.error(err);
-    repo.db.close();
+    db.db.close();
   });
