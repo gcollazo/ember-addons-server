@@ -14,9 +14,12 @@ var s3repo = new s3({
   key: process.env.AWS_ACCESS_KEY,
   secret: process.env.AWS_SECRET_KEY,
   bucket: process.env.AWS_BUCKET_NAME,
+  pagesFilename: process.env.PAGES_FILENAME,
   addonFilename: process.env.ADDON_JSON_FILENAME,
-  feedFilename: process.env.FEED_FILENAME
+  feedFilename: process.env.FEED_FILENAME,
+  maxItemsPerPage: parseInt(process.env.MAX_ITEMS_PER_PAGE, 10)
 });
+
 var startTime = new Date().getTime();
 
 // Update addons
@@ -32,8 +35,12 @@ emaddons.fetchAllWithDetailsAndDownloads()
     });
 
     // Save files to S3
-    return s3repo.saveAddonData(results)
-      .then(s3repo.saveAddonFeed(feed.getXml()));
+    return s3repo.saveAddonPages(results)
+      .then(s3repo.saveAddonData(results))
+      .then(s3repo.saveAddonFeed(feed.getXml()))
+      .then(function() {
+        return results;
+      });
   })
   .then(function(results) {
     console.log('--> Done updating %s addons.', results.length);
