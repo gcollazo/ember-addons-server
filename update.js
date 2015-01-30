@@ -8,8 +8,11 @@ var EmberAddons = require('./lib/ember_addons'),
 dotenv.load();
 
 // Init
-var db = new DB(process.env.DATABASE_URL);
 var emaddons = new EmberAddons({debug: true});
+var db = new DB({
+  databaseURL: process.env.DATABASE_URL,
+  debug: true
+});
 var s3repo = new s3({
   key: process.env.AWS_ACCESS_KEY,
   secret: process.env.AWS_SECRET_KEY,
@@ -18,6 +21,14 @@ var s3repo = new s3({
   addonFilename: process.env.ADDON_JSON_FILENAME,
   feedFilename: process.env.FEED_FILENAME,
   maxItemsPerPage: parseInt(process.env.MAX_ITEMS_PER_PAGE, 10)
+});
+var feed = new RssFeed({
+  language: 'en',
+  pubDate: new Date(),
+  title: 'Ember Addons',
+  description: 'Listing hundreds of modules that extend ember-cli.',
+  'feed_url': 'https://io-builtwithember-addons-data.s3.amazonaws.com/feed.xml',
+  'site_url': 'http://addons.builtwithember.io/'
 });
 
 var startTime = new Date().getTime();
@@ -28,41 +39,28 @@ emaddons.fetchAllWithDetailsAndDownloadsSorted()
   .then(function(results) {
     console.log('--> Done fetching data.');
 
-    console.log('--> Create Feed');
-    var feed = new RssFeed();
-    results.forEach(function(item) {
-      feed.appendItem(item);
-    });
+    console.log('--> Creating Feed...');
+    var feedXML = feed.getXml(results);
 
     // Save files to S3
     return s3repo.saveAddonPages(results)
       .then(s3repo.saveAddonData(results))
-      .then(s3repo.saveAddonFeed(feed.getXml()))
+      .then(s3repo.saveAddonFeed(feedXML))
       .then(function() {
         return results;
       });
   })
   .then(function(results) {
     console.log('--> Done updating %s addons.', results.length);
-    console.log('--> Checking last metric saved...');
-
-    return db.getMetric('total').then(function(totalMetrics) {
-      var lastValue = totalMetrics[totalMetrics.length - 1].value;
-      if (lastValue !== results.length.toString()) {
-        console.log('--> Saving metrics...');
-        return db.saveMetric('total', results.length);
-      } else {
-        console.log('--> Skiping metrics save...');
-      }
-    });
+    return db.updateTotalMetric(results.length);
   })
   .then(function() {
-    db.db.close();
+    db.close();
 
     var totalTime = (new Date().getTime() - startTime) / 1000;
     console.log('--> Duration: ' + totalTime + 's');
   })
   .catch(function(err) {
     console.error(err);
-    db.db.close();
+    db.close();
   });
