@@ -2,7 +2,7 @@ var express = require('express'),
     app = express(),
     cors = require('cors'),
     compression = require('compression'),
-    Repository = require('./lib/db'),
+    DB = require('./lib/db'),
     dotenv = require('dotenv'),
     csv = require('to-csv');
 
@@ -14,7 +14,10 @@ app.use(compression());
 app.use(cors());
 
 app.use(function(req, res, next) {
-  req.repo = new Repository(process.env.DATABASE_URL);
+  req.db = new DB({
+    databaseURL: process.env.DATABASE_URL,
+    debug: true
+  });
   next();
 });
 
@@ -24,28 +27,28 @@ app.get('/', function(req, res) {
 });
 
 app.get('/stats', function(req, res) {
-  req.repo.getMetric('total')
+  req.db.getMetric('total')
     .then(function(rows) {
       res.json(rows);
-      req.repo.db.close();
+      req.db.close();
     })
     .catch(function(err) {
       console.error(err);
       res.status(500).json({error: 'error'});
-      req.repo.db.close();
+      req.db.close();
     });
 });
 
 app.get('/stats.csv', function(req, res) {
-  req.repo.getMetric('total')
+  req.db.getMetric('total')
     .then(function(rows) {
       res.set('Content-Type', 'text/csv').send(csv(rows));
-      req.repo.db.close();
+      req.db.close();
     })
     .catch(function(err) {
       console.error(err);
       res.status(500).json({error: 'error'});
-      req.repo.db.close();
+      req.db.close();
     });
 });
 
