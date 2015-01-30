@@ -9,7 +9,7 @@ dotenv.load();
 
 // Init
 var db = new DB(process.env.DATABASE_URL);
-var emaddons = new EmberAddons();
+var emaddons = new EmberAddons({debug: true});
 var s3repo = new s3({
   key: process.env.AWS_ACCESS_KEY,
   secret: process.env.AWS_SECRET_KEY,
@@ -24,7 +24,7 @@ var startTime = new Date().getTime();
 
 // Update addons
 console.log('--> Fetching data from npm registry...');
-emaddons.fetchAllWithDetailsAndDownloads()
+emaddons.fetchAllWithDetailsAndDownloadsSorted()
   .then(function(results) {
     console.log('--> Done fetching data.');
 
