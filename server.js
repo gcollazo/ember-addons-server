@@ -52,6 +52,11 @@ app.get('/stats.csv', function(req, res) {
     });
 });
 
+app.get('/graph', function(req, res) {
+  res.redirect(301,
+    'http://www.charted.co/?{%22dataUrl%22:%22http://ember-addons-server.herokuapp.com/stats.csv%22,%22charts%22:[{%22type%22:%22line%22,%22title%22:%22Ember%20Addons%22,%22note%22:%22This%20chart%20shows%20the%20number%20of%20available%20addons%20for%20ember-cli%20on%20npmjs.org.%20http://emberaddons.com%22}]}');
+});
+
 
 app.listen(process.env.PORT, function() {
   console.log('listening on port %d', process.env.PORT);
