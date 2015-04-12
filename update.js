@@ -35,7 +35,7 @@ var startTime = new Date().getTime();
 
 // Update addons
 console.log('--> Fetching data from npm registry...');
-emaddons.fetchAllWithDetailsAndDownloadsSorted()
+emaddons.fetch()
   .then(function(results) {
     console.log('--> Done fetching data.');
 
