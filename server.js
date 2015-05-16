@@ -4,7 +4,8 @@ var express = require('express'),
     compression = require('compression'),
     DB = require('./lib/db'),
     dotenv = require('dotenv'),
-    csv = require('to-csv');
+    csv = require('to-csv'),
+    formatStats = require('./lib/format-stats');
 
 // load vars
 dotenv.load();
@@ -29,12 +30,12 @@ app.get('/', function(req, res) {
 app.get('/stats', function(req, res) {
   req.db.getMetric('total')
     .then(function(rows) {
-      res.json(rows);
+      res.json(formatStats(rows));
       req.db.close();
     })
     .catch(function(err) {
       console.error(err);
-      res.status(500).json({error: 'error'});
+      res.status(500).json({ error: 'error' });
       req.db.close();
     });
 });
@@ -42,12 +43,22 @@ app.get('/stats', function(req, res) {
 app.get('/stats.csv', function(req, res) {
   req.db.getMetric('total')
     .then(function(rows) {
-      res.set('Content-Type', 'text/csv').send(csv(rows));
+      var stats = formatStats(rows);
+      var table = [];
+
+      for (var i = 0; i < Object.keys(stats).length; i++) {
+        table.push({
+          created: Object.keys(stats)[i],
+          value: stats[ Object.keys(stats)[ i ] ]
+        });
+      }
+
+      res.set('Content-Type', 'text/csv').send(csv(table));
       req.db.close();
     })
     .catch(function(err) {
       console.error(err);
-      res.status(500).json({error: 'error'});
+      res.status(500).json({ error: 'error' });
       req.db.close();
     });
 });
