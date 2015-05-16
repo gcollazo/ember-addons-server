@@ -48,7 +48,7 @@ app.get('/stats.csv', function(req, res) {
 
       for (var i = 0; i < Object.keys(stats).length; i++) {
         table.push({
-          created: Object.keys(stats)[i],
+          created: Object.keys(stats)[ i ],
           value: stats[ Object.keys(stats)[ i ] ]
         });
       }
