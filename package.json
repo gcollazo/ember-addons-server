@@ -9,7 +9,7 @@
   "author": "Giovanni Collazo - @gcollazo",
   "license": "MIT",
   "keywords": [
-    "express",
+    "hapijs",
     "ember",
     "emberjs"
   ],
@@ -23,10 +23,8 @@
   "homepage": "https://github.com/gcollazo/ember-addons-server",
   "dependencies": {
     "anydb-sql": "^0.6.16",
-    "compression": "^1.1.0",
-    "cors": "^2.4.2",
     "dotenv": "^0.4.0",
-    "express": "^4.9.5",
+    "hapi": "^8.6.1",
     "knox": "^0.9.2",
     "lodash": "^3.8.0",
     "moment": "^2.10.3",
