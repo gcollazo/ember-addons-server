@@ -1,11 +1,9 @@
-var EmberAddons = require('./lib/ember_addons'),
-    DB = require('./lib/db'),
-    dotenv = require('dotenv'),
-    s3 = require('./lib/s3_repo'),
-    RssFeed = require('./lib/rss');
+require('dotenv').load();
 
-// load vars
-dotenv.load();
+var DB = require('./lib/db');
+var S3 = require('./lib/s3_repo');
+var EmberAddons = require('./lib/ember_addons');
+var RssFeed = require('./lib/rss');
 
 // Init
 var emaddons = new EmberAddons({debug: true});
@@ -13,7 +11,7 @@ var db = new DB({
   databaseURL: process.env.DATABASE_URL,
   debug: true
 });
-var s3repo = new s3({
+var s3repo = new S3({
   key: process.env.AWS_ACCESS_KEY,
   secret: process.env.AWS_SECRET_KEY,
   bucket: process.env.AWS_BUCKET_NAME,
@@ -56,8 +54,8 @@ emaddons.fetch()
   })
   .then(function() {
     db.close();
-
     var totalTime = (new Date().getTime() - startTime) / 1000;
+
     console.log('--> Duration: ' + totalTime + 's');
   })
   .catch(function(err) {

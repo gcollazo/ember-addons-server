@@ -1,14 +1,12 @@
-var express = require('express'),
-    app = express(),
-    cors = require('cors'),
-    compression = require('compression'),
-    DB = require('./lib/db'),
-    dotenv = require('dotenv'),
-    csv = require('to-csv'),
-    formatStats = require('./lib/format-stats');
+require('dotenv').load();
 
-// load vars
-dotenv.load();
+var express = require('express');
+var app = express();
+var cors = require('cors');
+var compression = require('compression');
+var DB = require('./lib/db');
+var csv = require('to-csv');
+var formatStats = require('./lib/format-stats');
 
 
 app.use(compression());
