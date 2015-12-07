@@ -3,13 +3,14 @@ require('dotenv').load();
 var DB = require('./lib/db');
 var S3 = require('./lib/s3_repo');
 var fetchAddons = require('./lib/ember-addons');
-var RssFeed = require('./lib/rss');
+var createRssGenerator = require('./lib/rss');
 
 // Init
 var db = new DB({
   databaseURL: process.env.DATABASE_URL,
   debug: true
 });
+
 var s3repo = new S3({
   key: process.env.AWS_ACCESS_KEY,
   secret: process.env.AWS_SECRET_KEY,
@@ -19,30 +20,32 @@ var s3repo = new S3({
   feedFilename: process.env.FEED_FILENAME,
   maxItemsPerPage: parseInt(process.env.MAX_ITEMS_PER_PAGE, 10)
 });
-var feed = new RssFeed({
+
+var rssGenerator = createRssGenerator({
   language: 'en',
   pubDate: new Date(),
   title: 'Ember Addons',
   description: 'Listing hundreds of modules that extend ember-cli.',
-  'feed_url': 'https://io-builtwithember-addons-data.s3.amazonaws.com/feed.xml',
-  'site_url': 'http://addons.builtwithember.io/'
+  feed_url: 'https://io-builtwithember-addons-data.s3.amazonaws.com/feed.xml',
+  site_url: 'http://addons.builtwithember.io/'
 });
 
 var startTime = new Date().getTime();
 
 // Update addons
 console.log('--> Fetching data from npm registry...');
+
 fetchAddons()
   .then(function(results) {
     console.log('--> Done fetching data.');
 
     console.log('--> Creating Feed...');
-    var feedXML = feed.getXml(results);
+    var rssFeed = rssGenerator(results);
 
     // Save files to S3
     return s3repo.saveAddonPages(results)
       .then(s3repo.saveAddonData(results))
-      .then(s3repo.saveAddonFeed(feedXML))
+      .then(s3repo.saveAddonFeed(rssFeed))
       .then(function() {
         return results;
       });
