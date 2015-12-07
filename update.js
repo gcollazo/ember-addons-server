@@ -2,11 +2,10 @@ require('dotenv').load();
 
 var DB = require('./lib/db');
 var S3 = require('./lib/s3_repo');
-var EmberAddons = require('./lib/ember_addons');
+var fetchAddons = require('./lib/ember-addons');
 var RssFeed = require('./lib/rss');
 
 // Init
-var emaddons = new EmberAddons({debug: true});
 var db = new DB({
   databaseURL: process.env.DATABASE_URL,
   debug: true
@@ -33,7 +32,7 @@ var startTime = new Date().getTime();
 
 // Update addons
 console.log('--> Fetching data from npm registry...');
-emaddons.fetch()
+fetchAddons()
   .then(function(results) {
     console.log('--> Done fetching data.');
 
