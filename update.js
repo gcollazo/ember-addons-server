@@ -1,24 +1,14 @@
 require('dotenv').load();
 
-var DB = require('./lib/db');
-var S3 = require('./lib/s3_repo');
 var fetchAddons = require('./lib/ember-addons');
 var createRssGenerator = require('./lib/rss');
+var createS3FileUploader = require('./lib/s3');
+var DB = require('./lib/db');
 
 // Init
 var db = new DB({
   databaseURL: process.env.DATABASE_URL,
   debug: true
-});
-
-var s3repo = new S3({
-  key: process.env.AWS_ACCESS_KEY,
-  secret: process.env.AWS_SECRET_KEY,
-  bucket: process.env.AWS_BUCKET_NAME,
-  pagesFilename: process.env.PAGES_FILENAME,
-  addonFilename: process.env.ADDON_JSON_FILENAME,
-  feedFilename: process.env.FEED_FILENAME,
-  maxItemsPerPage: parseInt(process.env.MAX_ITEMS_PER_PAGE, 10)
 });
 
 var rssGenerator = createRssGenerator({
@@ -30,37 +20,52 @@ var rssGenerator = createRssGenerator({
   site_url: 'http://addons.builtwithember.io/'
 });
 
+var s3FileUploader = createS3FileUploader({
+  key: process.env.AWS_ACCESS_KEY,
+  secret: process.env.AWS_SECRET_KEY,
+  bucket: process.env.AWS_BUCKET_NAME
+});
+
 var startTime = new Date().getTime();
+
 
 // Update addons
 console.log('--> Fetching data from npm registry...');
 
 fetchAddons()
-  .then(function(results) {
+  .then(function(addons) {
     console.log('--> Done fetching data.');
 
     console.log('--> Creating Feed...');
-    var rssFeed = rssGenerator(results);
+    var rssFeed = rssGenerator(addons);
+
+    var uploadAddons = s3FileUploader({
+      data: JSON.stringify(addons),
+      fileName: process.env.ADDON_JSON_FILENAME,
+      contentType: 'application/json'
+    });
+
+    var uploadFeed = s3FileUploader({
+      data: rssFeed,
+      fileName: process.env.FEED_FILENAME,
+      contentType: 'application/rss+xml'
+    });
 
     // Save files to S3
-    return s3repo.saveAddonPages(results)
-      .then(s3repo.saveAddonData(results))
-      .then(s3repo.saveAddonFeed(rssFeed))
-      .then(function() {
-        return results;
-      });
+    return uploadAddons()
+      .then(uploadFeed)
+      .then(function() { return addons; });
   })
-  .then(function(results) {
-    console.log('--> Done updating %s addons.', results.length);
-    return db.updateTotalMetric(results.length);
-  })
-  .then(function() {
-    db.close();
-    var totalTime = (new Date().getTime() - startTime) / 1000;
-
-    console.log('--> Duration: ' + totalTime + 's');
+  .then(function(addons) {
+    console.log('--> Done updating %s addons.', addons.length);
+    return db.updateTotalMetric(addons.length);
   })
   .catch(function(err) {
-    console.error(err);
+    console.error('--> ERROR:', err);
+  })
+  .finally(function() {
     db.close();
+
+    var totalTime = (new Date().getTime() - startTime) / 1000;
+    console.log('--> Duration: ' + totalTime + 's');
   });
