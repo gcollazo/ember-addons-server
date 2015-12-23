@@ -3,12 +3,11 @@ require('dotenv').load();
 var fetchAddons = require('./lib/ember-addons');
 var createRssGenerator = require('./lib/rss');
 var createS3FileUploader = require('./lib/s3');
-var DB = require('./lib/db');
+var createDatabase = require('./lib/db');
 
 // Init
-var db = new DB({
-  databaseURL: process.env.DATABASE_URL,
-  debug: true
+var db = createDatabase({
+  databaseURL: process.env.DATABASE_URL
 });
 
 var rssGenerator = createRssGenerator({
