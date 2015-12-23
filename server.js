@@ -28,16 +28,7 @@ app.get('/stats', function(req, res) {
   req.db.getMetric('total')
     .then(function(rows) {
       var stats = formatStats(rows);
-      var dates = Object.keys(stats);
-
-      var data = dates.map(function(date) {
-        return {
-          created: date,
-          value: stats[date]
-        };
-      });
-
-      res.json(data);
+      res.json(stats);
     })
     .catch(function(err) {
       console.error(err);
@@ -52,16 +43,7 @@ app.get('/stats.csv', function(req, res) {
   req.db.getMetric('total')
     .then(function(rows) {
       var stats = formatStats(rows);
-      var dates = Object.keys(stats);
-
-      var table = dates.map(function(date) {
-        return {
-          created: date,
-          value: stats[date]
-        };
-      });
-
-      res.set('Content-Type', 'text/csv').send(csv(table));
+      res.set('Content-Type', 'text/csv').send(csv(stats));
     })
     .catch(function(err) {
       console.error(err);
