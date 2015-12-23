@@ -4,7 +4,7 @@ var express = require('express');
 var app = express();
 var cors = require('cors');
 var compression = require('compression');
-var DB = require('./lib/db');
+var createDatabase = require('./lib/db');
 var csv = require('to-csv');
 var formatStats = require('./lib/format-stats');
 
@@ -13,9 +13,8 @@ app.use(compression());
 app.use(cors());
 
 app.use(function(req, res, next) {
-  req.db = new DB({
-    databaseURL: process.env.DATABASE_URL,
-    debug: true
+  req.db = createDatabase({
+    databaseURL: process.env.DATABASE_URL
   });
   next();
 });
@@ -28,12 +27,23 @@ app.get('/', function(req, res) {
 app.get('/stats', function(req, res) {
   req.db.getMetric('total')
     .then(function(rows) {
-      res.json(formatStats(rows));
-      req.db.close();
+      var stats = formatStats(rows);
+      var dates = Object.keys(stats);
+
+      var data = dates.map(function(date) {
+        return {
+          created: date,
+          value: stats[date]
+        };
+      });
+
+      res.json(data);
     })
     .catch(function(err) {
       console.error(err);
       res.status(500).json({ error: 'error' });
+    })
+    .finally(function() {
       req.db.close();
     });
 });
@@ -42,21 +52,22 @@ app.get('/stats.csv', function(req, res) {
   req.db.getMetric('total')
     .then(function(rows) {
       var stats = formatStats(rows);
-      var table = [];
+      var dates = Object.keys(stats);
 
-      for (var i = 0; i < Object.keys(stats).length; i++) {
-        table.push({
-          created: Object.keys(stats)[ i ],
-          value: stats[ Object.keys(stats)[ i ] ]
-        });
-      }
+      var table = dates.map(function(date) {
+        return {
+          created: date,
+          value: stats[date]
+        };
+      });
 
       res.set('Content-Type', 'text/csv').send(csv(table));
-      req.db.close();
     })
     .catch(function(err) {
       console.error(err);
       res.status(500).json({ error: 'error' });
+    })
+    .finally(function() {
       req.db.close();
     });
 });
