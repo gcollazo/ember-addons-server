@@ -1,3 +1,4 @@
+/* eslint-disable vars-on-top */
 require('dotenv').load();
 
 var fetchAddons = require('./lib/ember-addons');
