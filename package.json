@@ -42,7 +42,7 @@
   "devDependencies": {
     "babel-eslint": "^4.1.6",
     "eslint": "^1.10.3",
-    "eslint-config-blimp": "^1.0.0",
+    "eslint-config-blimp": "^1.2.0",
     "eslint-plugin-babel": "^3.0.0"
   }
 }

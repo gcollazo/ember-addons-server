@@ -1,17 +1,17 @@
-/* eslint-disable vars-on-top */
+/* eslint-disable camelcase */
 require('dotenv').load();
 
-var fetchAddons = require('./lib/ember-addons');
-var createRssGenerator = require('./lib/rss');
-var createS3FileUploader = require('./lib/s3');
-var createDatabase = require('./lib/db');
+const fetchAddons = require('./lib/ember-addons');
+const createRssGenerator = require('./lib/rss');
+const createS3FileUploader = require('./lib/s3');
+const createDatabase = require('./lib/db');
 
 // Init
-var db = createDatabase({
+const db = createDatabase({
   databaseURL: process.env.DATABASE_URL
 });
 
-var rssGenerator = createRssGenerator({
+const rssGenerator = createRssGenerator({
   language: 'en',
   pubDate: new Date(),
   title: 'Ember Addons',
@@ -20,13 +20,13 @@ var rssGenerator = createRssGenerator({
   site_url: 'http://addons.builtwithember.io/'
 });
 
-var s3FileUploader = createS3FileUploader({
+const s3FileUploader = createS3FileUploader({
   key: process.env.AWS_ACCESS_KEY,
   secret: process.env.AWS_SECRET_KEY,
   bucket: process.env.AWS_BUCKET_NAME
 });
 
-var startTime = new Date().getTime();
+const startTime = new Date().getTime();
 
 
 // Update addons
@@ -37,15 +37,15 @@ fetchAddons()
     console.log('--> Done fetching data.');
 
     console.log('--> Creating Feed...');
-    var rssFeed = rssGenerator(addons);
+    const rssFeed = rssGenerator(addons);
 
-    var uploadAddons = s3FileUploader({
+    const uploadAddons = s3FileUploader({
       data: JSON.stringify(addons),
       fileName: process.env.ADDON_JSON_FILENAME,
       contentType: 'application/json'
     });
 
-    var uploadFeed = s3FileUploader({
+    const uploadFeed = s3FileUploader({
       data: rssFeed,
       fileName: process.env.FEED_FILENAME,
       contentType: 'application/rss+xml'
@@ -66,6 +66,7 @@ fetchAddons()
   .finally(function() {
     db.close();
 
-    var totalTime = (new Date().getTime() - startTime) / 1000;
+    const MILLIS_SECOND = 1000;
+    const totalTime = (new Date().getTime() - startTime) / MILLIS_SECOND;
     console.log('--> Duration: ' + totalTime + 's');
   });
