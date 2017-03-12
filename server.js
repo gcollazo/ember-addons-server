@@ -28,34 +28,28 @@ app.get('/', function(req, res) {
     'https://io-builtwithember-addons-data.s3.amazonaws.com/addons.json');
 });
 
-app.get('/stats', function(req, res) {
-  req.db.getMetric('total')
-    .then(function(rows) {
-      const stats = formatStats(rows);
-      res.json(stats);
-    })
-    .catch(function(err) {
-      console.error(err);
-      res.status(INTERNAL_SERVER_ERROR).json({ error: 'error' });
-    })
-    .finally(function() {
-      req.db.close();
-    });
+app.get('/stats', async function(req, res) {
+  try {
+    const rows = await req.db.getMetric('total');
+    const stats = formatStats(rows);
+    res.json(stats);
+  } catch (error) {
+    console.error(error);
+    res.status(INTERNAL_SERVER_ERROR).json({ error: 'error' });
+  }
+  req.db.close();
 });
 
-app.get('/stats.csv', function(req, res) {
-  req.db.getMetric('total')
-    .then(function(rows) {
-      const stats = formatStats(rows);
-      res.set('Content-Type', 'text/csv').send(csv(stats));
-    })
-    .catch(function(err) {
-      console.error(err);
-      res.status(INTERNAL_SERVER_ERROR).json({ error: 'error' });
-    })
-    .finally(function() {
-      req.db.close();
-    });
+app.get('/stats.csv', async function(req, res) {
+  try {
+    const rows = await req.db.getMetric('total');
+    const stats = formatStats(rows);
+    res.set('Content-Type', 'text/csv').send(csv(stats));
+  } catch (error) {
+    console.error(error);
+    res.status(INTERNAL_SERVER_ERROR).json({ error: 'error' });
+  }
+  req.db.close();
 });
 
 app.get('/graph', function(req, res) {
