@@ -7,7 +7,7 @@
     "update": "node update.js"
   },
   "engines": {
-    "node": "5.6.0"
+    "node": "7.7.2"
   },
   "author": "Giovanni Collazo - @gcollazo",
   "license": "MIT",
