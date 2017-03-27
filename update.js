@@ -38,18 +38,11 @@ const s3FileUploader = createS3FileUploader({
 });
 
 // Check if we need an update
-db.getLatestTotalMetric().then((lastCount) => {
-  lastCount = parseInt(lastCount, 10);
-
-  return emberAddons.getAll().then((allAddons) => {
-    if (lastCount !== allAddons.length) {
-      console.log(
-        '--> Needs update: YES --',
-        'lastCount:', lastCount,
-        'newCount:', allAddons.length
-      );
-      return allAddons;
-    } else {
+async function run() {
+  try {
+    const lastCount = await db.getLatestTotalMetric();
+    const allAddons = await emberAddons.getAll();
+    if (lastCount === allAddons.length) {
       console.log(
         '--> Needs update: NO --',
         'lastCount:', lastCount,
@@ -57,53 +50,52 @@ db.getLatestTotalMetric().then((lastCount) => {
       );
       printTotalTime();
       process.exit(0);
+    } else {
+      console.log(
+        '--> Needs update: YES --',
+        'lastCount:', lastCount,
+        'newCount:', allAddons.length
+      );
     }
-  });
-})
-.then(function(addons) {
-  // Update addons
-  console.log('--> Fetching data from npm registry...');
-  return emberAddons.getDetails(addons);
-})
-.then(function(addons) {
-  console.log('--> Done fetching data.');
 
-  console.log('--> Creating Feed...');
-  const rssFeed = rssGenerator(addons);
+    console.log('--> Fetching data from npm registry...');
+    const addons = await emberAddons.getDetails(allAddons);
+    console.log('--> Done fetching data.');
 
-  const uploadAddons = s3FileUploader({
-    data: JSON.stringify(addons),
-    fileName: process.env.ADDON_JSON_FILENAME,
-    contentType: 'application/json'
-  });
+    console.log('--> Creating Feed...');
+    const rssFeed = rssGenerator(addons);
 
-  const uploadFeed = s3FileUploader({
-    data: rssFeed,
-    fileName: process.env.FEED_FILENAME,
-    contentType: 'application/rss+xml'
-  });
+    const uploadAddons = s3FileUploader({
+      data: JSON.stringify(addons),
+      fileName: process.env.ADDON_JSON_FILENAME,
+      contentType: 'application/json'
+    });
+    await uploadAddons();
 
-  const lastUpdated = s3FileUploader({
-    data: JSON.stringify({ date: new Date() }),
-    fileName: process.env.ADDON_LAST_UPDATED_FILENAME,
-    contentType: 'application/json'
-  });
+    const uploadFeed = s3FileUploader({
+      data: rssFeed,
+      fileName: process.env.FEED_FILENAME,
+      contentType: 'application/rss+xml'
+    });
+    await uploadFeed();
 
-  // Save files to S3
-  return uploadAddons()
-    .then(uploadFeed)
-    .then(lastUpdated)
-    .then(function() { return addons; });
-})
-.then(function(addons) {
-  console.log('--> Done updating %s addons.', addons.length);
-  return db.updateTotalMetric(addons.length);
-})
-.catch(function(err) {
-  console.error('--> ERROR:', err);
-})
-.finally(function() {
-  db.close();
-  printTotalTime();
-  process.exit(0);
-});
+    const lastUpdated = s3FileUploader({
+      data: JSON.stringify({ date: new Date() }),
+      fileName: process.env.ADDON_LAST_UPDATED_FILENAME,
+      contentType: 'application/json'
+    });
+    await lastUpdated();
+
+    console.log('--> Updating total metric...');
+    await db.updateTotalMetric(addons.length);
+
+    console.log('--> Done updating %s addons.', addons.length);
+    db.close();
+    printTotalTime();
+    process.exit(0);
+  } catch (error) {
+    console.error('--> ERROR:', error);
+  }
+}
+
+run();
