@@ -28,6 +28,7 @@
   "homepage": "https://github.com/gcollazo/ember-addons-server",
   "dependencies": {
     "anydb-sql": "^0.6.53",
+    "bluebird": "^3.5.0",
     "compression": "^1.6.2",
     "cors": "^2.8.1",
     "dotenv": "^4.0.0",
