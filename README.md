@@ -1,2 +1,3 @@
 # ember-addons-server
-API server for [addons.builtwithember.io](http://addons.builtwithember.io)
+
+This repo contains the code for updating the [https://www.emberaddons.com](https://www.emberaddons.com) website.
