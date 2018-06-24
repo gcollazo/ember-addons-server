@@ -1,3 +1,6 @@
 {
-  "extends": "blimp"
+  "extends": "blimp",
+  "parserOptions": {
+    "ecmaVersion": 2017
+  }
 }
