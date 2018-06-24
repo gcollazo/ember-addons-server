@@ -17,7 +17,7 @@ function createTimer() {
 
 const printTotalTime = createTimer();
 
-// Init
+// Init...
 const db = createDatabase({
   databaseURL: process.env.DATABASE_URL
 });
