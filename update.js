@@ -45,16 +45,20 @@ async function run() {
     if (lastCount === allAddons.length) {
       console.log(
         '--> Needs update: NO --',
-        'lastCount:', lastCount,
-        'newCount:', allAddons.length
+        'lastCount:',
+        lastCount,
+        'newCount:',
+        allAddons.length
       );
       printTotalTime();
       process.exit(0);
     } else {
       console.log(
         '--> Needs update: YES --',
-        'lastCount:', lastCount,
-        'newCount:', allAddons.length
+        'lastCount:',
+        lastCount,
+        'newCount:',
+        allAddons.length
       );
     }
 
