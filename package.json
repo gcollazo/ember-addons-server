@@ -9,7 +9,7 @@
     "update": "node update.js"
   },
   "engines": {
-    "node": "8.11.1"
+    "node": ">8.11.1"
   },
   "author": "Giovanni Collazo - @gcollazo",
   "license": "MIT",

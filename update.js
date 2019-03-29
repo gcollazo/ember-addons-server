@@ -7,10 +7,10 @@ const createS3FileUploader = require('./lib/s3');
 const createDatabase = require('./lib/db');
 
 function createTimer() {
-  const startTime = new Date().getTime();
+  let startTime = new Date().getTime();
 
   return function() {
-    const totalTime = (new Date().getTime() - startTime) / 1000;
+    let totalTime = (new Date().getTime() - startTime) / 1000;
     console.log('--> Duration: ' + totalTime + 's');
   };
 }
@@ -40,8 +40,8 @@ const s3FileUploader = createS3FileUploader({
 // Check if we need an update
 async function run() {
   try {
-    const lastCount = await db.getLatestTotalMetric();
-    const allAddons = await emberAddons.getAll();
+    let lastCount = await db.getLatestTotalMetric();
+    let allAddons = await emberAddons.getAll();
     if (lastCount === allAddons.length) {
       console.log(
         '--> Needs update: NO --',
@@ -63,27 +63,27 @@ async function run() {
     }
 
     console.log('--> Fetching data from npm registry...');
-    const addons = await emberAddons.getDetails(allAddons);
+    let addons = await emberAddons.getDetails(allAddons);
     console.log('--> Done fetching data.');
 
     console.log('--> Creating Feed...');
-    const rssFeed = rssGenerator(addons);
+    let rssFeed = rssGenerator(addons);
 
-    const uploadAddons = s3FileUploader({
+    let uploadAddons = s3FileUploader({
       data: JSON.stringify(addons),
       fileName: process.env.ADDON_JSON_FILENAME,
       contentType: 'application/json'
     });
     await uploadAddons();
 
-    const uploadFeed = s3FileUploader({
+    let uploadFeed = s3FileUploader({
       data: rssFeed,
       fileName: process.env.FEED_FILENAME,
       contentType: 'application/rss+xml'
     });
     await uploadFeed();
 
-    const lastUpdated = s3FileUploader({
+    let lastUpdated = s3FileUploader({
       data: JSON.stringify({ date: new Date() }),
       fileName: process.env.ADDON_LAST_UPDATED_FILENAME,
       contentType: 'application/json'
