@@ -4,7 +4,6 @@
   "description": "API server for addons.builtwithember.io",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
     "watch": "nodemon server.js",
     "update": "node update.js"
   },

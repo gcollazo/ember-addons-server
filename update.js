@@ -1,10 +1,13 @@
 /* eslint-disable camelcase */
 require('dotenv').load();
 
+const csv = require('to-csv');
+
 const emberAddons = require('./lib/ember-addons');
 const createRssGenerator = require('./lib/rss');
 const createS3FileUploader = require('./lib/s3');
 const createDatabase = require('./lib/db');
+const formatStats = require('./lib/format-stats');
 
 function createTimer() {
   let startTime = new Date().getTime();
@@ -39,35 +42,21 @@ const s3FileUploader = createS3FileUploader({
 
 // Check if we need an update
 async function run() {
+  console.log('--> Starting...');
+
   try {
-    let lastCount = await db.getLatestTotalMetric();
+    console.log('--> Getting all addons from npm...');
     let allAddons = await emberAddons.getAll();
-    if (lastCount === allAddons.length) {
-      console.log(
-        '--> Needs update: NO --',
-        'lastCount:',
-        lastCount,
-        'newCount:',
-        allAddons.length
-      );
-      printTotalTime();
-      process.exit(0);
-    } else {
-      console.log(
-        '--> Needs update: YES --',
-        'lastCount:',
-        lastCount,
-        'newCount:',
-        allAddons.length
-      );
-    }
 
     console.log('--> Fetching data from npm registry...');
     let addons = await emberAddons.getDetails(allAddons);
-    console.log('--> Done fetching data.');
 
     console.log('--> Creating Feed...');
     let rssFeed = rssGenerator(addons);
+
+    console.log('--> Creating stats.csv...');
+    let rows = await db.getMetric('total');
+    let stats = formatStats(rows);
 
     let uploadAddons = s3FileUploader({
       data: JSON.stringify(addons),
@@ -82,6 +71,13 @@ async function run() {
       contentType: 'application/rss+xml'
     });
     await uploadFeed();
+
+    let uploadStats = s3FileUploader({
+      data: csv(stats),
+      fileName: process.env.STATS_FILENAME,
+      contentType: 'text/csv'
+    });
+    await uploadStats();
 
     let lastUpdated = s3FileUploader({
       data: JSON.stringify({ date: new Date() }),
