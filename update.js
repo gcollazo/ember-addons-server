@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-require('dotenv').load();
+require('dotenv').config();
 
 const csv = require('to-csv');
 
