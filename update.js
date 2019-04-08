@@ -52,8 +52,13 @@ async function run() {
     console.log('--> Fetching data from npm registry...');
     let addons = await emberAddons.getDetails(allAddons);
 
-    console.log('--> Updating total metric...');
-    await db.updateTotalMetric(addons.length);
+    let lastCount = await db.getLatestTotalMetric();
+    if (lastCount !== allAddons.length) {
+      console.log('--> Updating total metric...');
+      await db.updateTotalMetric(addons.length);
+    } else {
+      console.log('--> Skip update total metric...');
+    }
 
     console.log('--> Creating Feed...');
     let rssFeed = rssGenerator(addons);
