@@ -32,7 +32,7 @@ const rssGenerator = createRssGenerator({
   title: 'Ember Addons',
   description: 'Listing hundreds of modules that extend ember-cli.',
   feed_url: 'https://io-builtwithember-addons-data.s3.amazonaws.com/feed.xml',
-  site_url: 'http://addons.builtwithember.io/'
+  site_url: 'https://www.emberaddons.com/'
 });
 
 const s3FileUploader = createS3FileUploader({
