@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-process-exit */
-require('dotenv').config();
+let envFile = process.argv[2] || './.env';
+require('dotenv').config({ path: envFile });
 
 const csv = require('to-csv');
 
