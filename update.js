@@ -85,8 +85,7 @@ async function run() {
     let uploadStats = s3FileUploader({
       data: csv(stats),
       fileName: process.env.STATS_FILENAME,
-      contentType: 'text/csv',
-      compressData: false
+      contentType: 'text/csv'
     });
     await uploadStats();
 
